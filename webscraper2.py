@@ -9,22 +9,21 @@ and phone numbers included in the page.
 import sys
 import argparse
 import requests
+import HTMLParser
+from bs4 import BeautifulSoup
+import urllib2
 import re
 
 
-def requestUrl(req_url):
+def parse_html(req_url):
     r = requests.get(req_url)
     emails = list(set(re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+"
                                  r"\.[a-zA-Z0-9-.]+)", r.content)))
     print "Emails:"
     for email in emails:
         print email
-    urls = list(set(re.findall(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-&(-_@.&+]|"
-                    r"[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", r.content)))
-    print "URLs:"
-    for url in urls:
-        print url
-    # This regex pater will find a phone number
+
+    # This regex patter will find a phone number
     # with any special char connecting numbers
     # phones = re.findall(r'1?\W*([2-9][0-8][0-9]\W*[2-9][0-9]{2}\W*[0-9]{4})',
     # r.content)
@@ -34,6 +33,18 @@ def requestUrl(req_url):
     for phone in phones:
         print phone
 
+    html_page = urllib2.urlopen(req_url)
+    soup = BeautifulSoup(html_page)
+    urls = []
+    for link in soup.findAll('a'):
+        urls.append(link.get('href'))
+    for link in soup.findAll('img'):
+        urls.append(link.get('src'))
+    urls = list(set(urls))
+    print "URLs:"
+    for url in urls:
+        print url
+
 
 def main(args):
     if not args:
@@ -42,7 +53,7 @@ def main(args):
     parser.add_argument('url', help='URL to scrape')
     args = parser.parse_args()
     # print args.url
-    requestUrl(args.url)
+    parse_html(args.url)
 
 
 if __name__ == '__main__':
