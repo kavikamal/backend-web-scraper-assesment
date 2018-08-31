@@ -9,7 +9,6 @@ and phone numbers included in the page.
 import sys
 import argparse
 import requests
-import HTMLParser
 from bs4 import BeautifulSoup
 import urllib2
 import re
@@ -33,9 +32,10 @@ def parse_html(req_url):
     for phone in phones:
         print phone
 
+    urls = list(set(re.findall(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-&(-_@.&+]|"
+                               r"[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", r.content)))
     html_page = urllib2.urlopen(req_url)
-    soup = BeautifulSoup(html_page)
-    urls = []
+    soup = BeautifulSoup(html_page,features="html.parser")
     for link in soup.findAll('a'):
         urls.append(link.get('href'))
     for link in soup.findAll('img'):
